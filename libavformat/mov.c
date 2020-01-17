@@ -66,6 +66,10 @@
 
 #include "qtpalette.h"
 
+// Added by Jun
+#include "mov.h"
+// End
+
 /* those functions parse an atom */
 /* links atom IDs to parse functions */
 typedef struct MOVParseTableEntry {
