@@ -13,7 +13,7 @@
 typedef struct MOVBoxs {
     MOVAtom**   boxs;
     int32_t     count;
-} MOVAtom;
+} MOVBoxs;
 
 
 
