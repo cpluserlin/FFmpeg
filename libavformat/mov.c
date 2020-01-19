@@ -66,10 +66,6 @@
 
 #include "qtpalette.h"
 
-// Added by Jun
-#include "mov.h"
-// End
-
 /* those functions parse an atom */
 /* links atom IDs to parse functions */
 typedef struct MOVParseTableEntry {
@@ -6923,6 +6919,9 @@ static int mov_read_default(MOVContext *c, AVIOContext *pb, MOVAtom atom)
                 parse = mov_default_parse_table[i].parse;
                 break;
             }
+        // Added by Jun
+        ff_insertBox(atom.type, &a, avio_tell(pb), a.size, c->boxs);
+        // End
 
         // container is user data
         if (!parse && (atom.type == MKTAG('u','d','t','a') ||
@@ -7319,7 +7318,14 @@ static int mov_read_close(AVFormatContext *s)
 
     av_freep(&mov->aes_decrypt);
     av_freep(&mov->chapter_tracks);
-
+// Added by Jun
+    if(mov->boxs)
+    {
+        free(mov->boxs->boxs);
+        free(mov->boxs);
+        mov->boxs = NULL;
+    }
+// End
     return 0;
 }
 
@@ -7470,7 +7476,7 @@ static int mov_read_header(AVFormatContext *s)
             mov->decryption_key_len, AES_CTR_KEY_SIZE);
         return AVERROR(EINVAL);
     }
-
+    
     mov->fc = s;
     mov->trak_index = -1;
     /* .mov and .mp4 aren't streamable anyway (only progressive download if moov is before mdat) */
@@ -7478,6 +7484,11 @@ static int mov_read_header(AVFormatContext *s)
         atom.size = avio_size(pb);
     else
         atom.size = INT64_MAX;
+    
+    // Add by Jun
+    mov->boxs = ff_alloc_boxs(128);
+    ff_insertBox(0, &atom, avio_tell(pb), atom.size, mov->boxs);
+    // End
 
     /* check MOV header */
     do {
@@ -8091,3 +8102,35 @@ AVInputFormat ff_mov_demuxer = {
     .read_seek      = mov_read_seek,
     .flags          = AVFMT_NO_BYTE_SEEK | AVFMT_SEEK_TO_PTS,
 };
+
+// Added by Jun
+MOVBoxs* ff_alloc_boxs(int size)
+{
+    MOVBoxs* boxs   = malloc(sizeof(MOVBoxs));
+    boxs->size      = size;
+    boxs->count     = 0;
+    boxs->boxs      = malloc(size*sizeof(MOVBox));
+    return boxs;
+}
+
+void ff_free_boxs(MOVBoxs* boxs)
+{
+    free(boxs->boxs);
+    free(boxs);
+}
+
+void ff_insertBox(int32_t parent, struct MOVAtom* box, long long pos, int size, MOVBoxs* list)
+{
+    if(list->count >= list->size)
+        return;
+    MOVBox* newBox      = malloc(sizeof(MOVBox));
+    newBox->box.type    = box->type;
+    newBox->box.size    = box->size;
+    newBox->size        = size;
+    newBox->parent      = parent;
+    newBox->pos_in_file = pos;
+    
+    list->boxs[list->count]   = newBox;
+    list->count++;
+}
+// End

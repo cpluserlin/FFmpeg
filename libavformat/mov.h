@@ -8,12 +8,24 @@
 #ifndef mov_h
 #define mov_h
 
-#include "isom.h"
+//#include "isom.h"
 
-typedef struct MOVBoxs {
-    MOVAtom**   boxs;
-    int32_t     count;
-} MOVBoxs;
+//struct MOVAtom;
+//
+//typedef struct MOVBox {
+//    struct MOVAtom  box;
+//    uint32_t        parent;
+//    long long       pos_in_file;
+//    int             size;
+//} MOVBox;
+//
+//typedef struct MOVBoxs {
+//    MOVBox**   boxs;
+//    int32_t    size;
+//    int32_t    count;
+//} MOVBoxs;
+//
+//void insertBox(int32_t parent, struct MOVAtom* box, long long pos, int size, MOVBoxs* list);
 
 
 

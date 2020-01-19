@@ -154,6 +154,25 @@ typedef struct MOVIndexRange {
     int64_t end;
 } MOVIndexRange;
 
+// Added by Jun
+typedef struct MOVBox {
+    struct MOVAtom  box;
+    uint32_t        parent;
+    long long       pos_in_file;
+    int             size;
+} MOVBox;
+
+typedef struct MOVBoxs {
+    MOVBox**   boxs;
+    int32_t    size;
+    int32_t    count;
+} MOVBoxs;
+
+MOVBoxs* ff_alloc_boxs(int size);
+void ff_free_boxs(MOVBoxs* boxs);
+void ff_insertBox(int32_t parent, struct MOVAtom* box, long long pos, int size, MOVBoxs* list);
+// End
+
 typedef struct MOVStreamContext {
     AVIOContext *pb;
     int pb_is_copied;
@@ -290,6 +309,9 @@ typedef struct MOVContext {
     int decryption_key_len;
     int enable_drefs;
     int32_t movie_display_matrix[3][3]; ///< display matrix from mvhd
+// Added by Jun
+    MOVBoxs *boxs;
+// End
 } MOVContext;
 
 int ff_mp4_read_descr_len(AVIOContext *pb);
